@@ -59,7 +59,7 @@
 -record(state,
         {
             receiver :: pid(),
-            interval :: timeout(), % milliseconds
+            period :: timeout(), % milliseconds
             value = undefined :: status() | undefined,
             status :: ntpstat:status()
         }).
@@ -75,12 +75,12 @@
 %%-------------------------------------------------------------------------
 
 -spec start_link(ReceiverPid :: pid(),
-                 IntervalSeconds :: pos_integer(),
+                 PeriodSeconds :: pos_integer(),
                  Options :: ntpstat:options()) ->
     {ok, pid()} | {error, any()}.
 
-start_link(ReceiverPid, IntervalSeconds, Options) ->
-    case start(ReceiverPid, IntervalSeconds, Options) of
+start_link(ReceiverPid, PeriodSeconds, Options) ->
+    case start(ReceiverPid, PeriodSeconds, Options) of
         {ok, Pid} = Success ->
             true = erlang:link(Pid),
             Success;
@@ -104,12 +104,12 @@ stop_link(Pid) ->
 %%% Callback functions from gen_server
 %%%------------------------------------------------------------------------
 
-init([ReceiverPid, IntervalSeconds, Options]) ->
+init([ReceiverPid, PeriodSeconds, Options]) ->
     Status = ntpstat:new(Options),
-    IntervalMilliSeconds = IntervalSeconds * 1000,
+    PeriodMilliSeconds = PeriodSeconds * 1000,
     self() ! update,
     {ok, #state{receiver = ReceiverPid,
-                interval = IntervalMilliSeconds,
+                period = PeriodMilliSeconds,
                 status = Status}}.
 
 handle_call(Request, _, State) ->
@@ -122,12 +122,12 @@ handle_cast(Request, State) ->
 
 handle_info(update,
             #state{receiver = ReceiverPid,
-                   interval = IntervalMilliSeconds,
+                   period = PeriodMilliSeconds,
                    value = ValueOld,
                    status = StatusOld} = State) ->
     UpdateNativeStart = erlang:monotonic_time(),
     {ValueNew,
-     StatusNew} = case ntpstat:update(IntervalMilliSeconds, StatusOld) of
+     StatusNew} = case ntpstat:update(PeriodMilliSeconds, StatusOld) of
         {ok, _} = Success ->
             Success;
         {error, ErrorStatus, Status} ->
@@ -137,7 +137,7 @@ handle_info(update,
     DelayMilliSeconds = erlang:convert_time_unit(UpdateNativeEnd -
                                                  UpdateNativeStart,
                                                  native, millisecond),
-    UpdateNextMilliSeconds = max(IntervalMilliSeconds - DelayMilliSeconds, 0),
+    UpdateNextMilliSeconds = max(PeriodMilliSeconds - DelayMilliSeconds, 0),
     erlang:send_after(UpdateNextMilliSeconds, self(), update),
     if
         ValueOld /= ValueNew ->
@@ -162,11 +162,11 @@ code_change(_, State, _) ->
 %%% Private functions
 %%%------------------------------------------------------------------------
 
-start(ReceiverPid, IntervalSeconds, Options)
+start(ReceiverPid, PeriodSeconds, Options)
     when is_pid(ReceiverPid),
-         is_integer(IntervalSeconds), IntervalSeconds > 0,
-         IntervalSeconds < ?TIMEOUT_MAX_ERLANG div 1000,
+         is_integer(PeriodSeconds), PeriodSeconds > 0,
+         PeriodSeconds < ?TIMEOUT_MAX_ERLANG div 1000,
          is_list(Options) ->
     gen_server:start(?MODULE,
-                     [ReceiverPid, IntervalSeconds, Options], []).
+                     [ReceiverPid, PeriodSeconds, Options], []).
 

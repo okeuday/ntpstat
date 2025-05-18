@@ -435,5 +435,7 @@ take_values(Result, [{Key, Default} | DefaultList], List) ->
             take_values([Value | Result], DefaultList, RemainingList)
     end.
 
+-spec exit_code(ExitCode :: integer()) -> no_return().
+
 exit_code(ExitCode) when is_integer(ExitCode) ->
     erlang:halt(ExitCode, [{flush, true}]).
