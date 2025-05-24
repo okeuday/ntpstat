@@ -1,8 +1,6 @@
 # `ntpstat`: Erlang ntpstat Client Interface
 
-A minimal ntpstat client interface
-([RFC9327](https://tools.ietf.org/html/rfc9327) supersedes
- [RFC1305](https://tools.ietf.org/html/rfc1305)).
+A minimal ntpstat client interface for real-time use.
 The original ntpstat executable was created by G. Richard Keech and
 relies on a NTP mode 6 control message
 (operation code 2, does not require authentication).
@@ -24,10 +22,6 @@ due to security concerns and not being required by NTP v4.
 The alternative would be brittle slow parsing of shell command output
 that is specific to each NTP server implementation
 (an approach that will not be pursued in this repository).
-More information about NTP mode 6 control messages is available at
-[RFC9327](https://tools.ietf.org/html/rfc9327)
-(referenced from [RFC8633](https://tools.ietf.org/html/rfc8633))
-and [https://docs.ntpsec.org/latest/mode6.html](https://docs.ntpsec.org/latest/mode6.html).
 
 ### Supported
 
@@ -38,6 +32,14 @@ and [https://docs.ntpsec.org/latest/mode6.html](https://docs.ntpsec.org/latest/m
 
 * [chrony](https://chrony-project.org)
 * [OpenNTPD](https://openntpd.org)
+
+### NTP Mode 6 Control Message Documentation
+
+More information about NTP mode 6 control messages is available at:
+
+* [RFC1305](https://tools.ietf.org/html/rfc1305) is the main source of information (in Appendix B)
+* [RFC9327](https://tools.ietf.org/html/rfc9327) (referenced from [RFC8633](https://tools.ietf.org/html/rfc8633)) has historical information but also contains errors
+* [https://docs.ntpsec.org/latest/mode6.html](https://docs.ntpsec.org/latest/mode6.html) has important information not available elsewhere
 
 ## Build
 
